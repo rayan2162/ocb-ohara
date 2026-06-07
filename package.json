@@ -1,0 +1,13 @@
+{
+  "name": "ocs-ohara",
+  "version": "1.0.0",
+  "description": "A read-only course library that lists JSON files from a courses/ folder and lets users download them. Mirrors the Open Course Builder design.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
