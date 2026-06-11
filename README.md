@@ -1,343 +1,409 @@
-# OCS Ohara
+﻿# OCS Ohara
 
-A read-only course library. Browse a list of courses and download any course as a JSON file. Visually mirrors the [`open-course-builder`](../open-course-builder) project, but is intentionally limited to **view + download** — no editing, no uploading, no auth.
+A read-only course library that runs as a fully static site — no server, no build step, no auth. Browse a list of courses and download any course as a JSON file. Designed to be deployed straight to **GitHub Pages** (or any static host: Netlify, S3, `python -m http.server`, …).
 
-The server reads every `.json` file in the `courses/` folder on disk, surfaces a summary list to the browser, and streams a pretty-printed copy of the original file (with a sanitised `Content-Disposition` filename) when a user clicks **Download**.
+The JSON files in this catalog are **wire-compatible** with [`open-course-builder`](https://github.com/rayan2162/open-course-builder): a course you download here can be re-imported there with no transformation, and the file schema round-trips cleanly.
+
+> Visually mirrors the `open-course-builder` project, but is intentionally limited to **view + download** — no editing, no uploading, no auth.
 
 ---
 
 ## Table of contents
 
-- [OCS Ohara](#ocs-ohara)
-  - [Table of contents](#table-of-contents)
-  - [Run it](#run-it)
-  - [Project layout](#project-layout)
-  - [How it works](#how-it-works)
-  - [Add a new course](#add-a-new-course)
-  - [Course schema](#course-schema)
-    - [Authors on the card](#authors-on-the-card)
-    - [Author entry shape](#author-entry-shape)
-  - [API](#api)
-  - [Frontend](#frontend)
-  - [Filename safety and security model](#filename-safety-and-security-model)
-  - [Download filename behavior](#download-filename-behavior)
-  - [Error handling](#error-handling)
-  - [Troubleshooting](#troubleshooting)
+- [Quick start (5 minutes)](#quick-start-5-minutes)
+- [Live demo](#live-demo)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Project layout](#project-layout)
+- [Course schema](#course-schema)
+  - [Top-level fields](#top-level-fields)
+  - [Authors](#authors)
+  - [Lessons](#lessons)
+  - [Tags and language](#tags-and-language)
+  - [Tasks](#tasks)
+- [The `courses-index.json` index file](#the-courses-indexjson-index-file)
+- [Add a new course](#add-a-new-course)
+- [Use a downloaded course in `open-course-builder`](#use-a-downloaded-course-in-open-course-builder)
+- [Deploy to GitHub Pages](#deploy-to-github-pages)
+- [Local preview](#local-preview)
+- [Filename safety and security model](#filename-safety-and-security-model)
+- [Error handling and edge cases](#error-handling-and-edge-cases)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ---
 
-## Run it
+## Quick start (5 minutes)
 
-```bash
-npm install
-npm start
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/rayan2162/ocb-ohara.git
+   cd ocb-ohara
+   ```
+
+2. **Generate the index** (one-time per new course)
+   ```bash
+   node generate-index.js
+   ```
+   No `npm install` is required — the indexer has zero dependencies and uses only the Node built-ins `fs` and `path`.
+
+3. **Open the site**
+   - Easiest: double-click `index.html`. It runs as a `file://` page and fetches `./courses-index.json` + `./courses/*.json` directly.
+   - Or serve the folder with anything static, e.g. `python -m http.server 8080`, then visit <http://localhost:8080/>.
+
+4. **Refresh the index whenever you add or change a course file** — re-run `node generate-index.js` and commit the regenerated `courses-index.json` alongside the new course file.
+
+That's it. The whole runtime is one self-contained `index.html` (inline CSS + inline JS + Bootstrap + Bootstrap Icons from a CDN).
+
+---
+
+## Live demo
+
+Deployed to GitHub Pages at: **<https://rayan2162.github.io/ocb-ohara/>**
+
+(Or whatever your `https://<user>.github.io/<repo>/` resolves to once Pages is enabled in the repo settings.)
+
+---
+
+## Features
+
+| Area              | What you get                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| **Browse**        | Responsive card grid (1/2/3 columns at sm/md/lg) with title, description, lesson count, tags, language, authors, last-updated chip, and the on-disk filename chip. |
+| **Search**        | Client-side filter across title, description, tags, `courseLanguage`, and `authorName`. Live count of matching courses. |
+| **View**          | Bootstrap modal with a **List** view (lessons rendered as cards with type, content, notes) and a **Raw** view (pretty-printed JSON). Toggle in-place. |
+| **Download**      | One click downloads the original `.json` file exactly as it lives in `courses/`. The browser uses the natural download flow. |
+| **Mobile**        | Works on phones — cards stack, modal scrolls, chips wrap.                                       |
+| **No backend**    | Pure static: no Node runtime in production, no Express, no auth tokens, no databases.            |
+| **Round-trip**    | A downloaded course imports cleanly into `open-course-builder` (same schema, same field names).  |
+| **Resilient**     | One malformed course file never breaks the catalog — it's logged and skipped at build time.     |
+
+---
+
+## How it works
+
+```
+       ┌──────────────────────────┐
+       │   courses/*.json         │   ← you author or drop these in
+       │   (source of truth)      │
+       └────────────┬─────────────┘
+                    │
+                    │  node generate-index.js
+                    │  (walks ./courses/, parses each file)
+                    ▼
+       ┌──────────────────────────┐
+       │   courses-index.json     │   ← slim manifest, sorted by updatedAt desc
+       │   (generated; committed) │
+       └────────────┬─────────────┘
+                    │
+                    │  fetched at page load
+                    ▼
+       ┌──────────────────────────┐
+       │   index.html             │   ← single self-contained page
+       │   (inline CSS + JS +     │     renders the grid, opens the modal,
+       │    Bootstrap + Icons)    │     and serves individual course files
+       └──────────────────────────┘
 ```
 
-The server listens on **http://localhost:3001** by default (port `3000` is left free for `open-course-builder`). To use a different port:
+- **Build time** is just `node generate-index.js`. There is no bundler, no transpiler, no watcher.
+- **Runtime** is whatever serves static files. GitHub Pages is the primary target.
+- **No data is stored in a database** — `courses/*.json` *is* the database. Add, edit, or delete a file; regenerate the index; push.
 
-```bash
-PORT=4000 npm start                        # macOS / Linux
-$env:PORT=4000; npm start                  # PowerShell
-set PORT=4000 && npm start                 # cmd.exe
-```
-
-The `start` and `dev` scripts are identical (`node server.js`); there is no watcher — restart the process after editing server-side code.
-
-The server auto-creates an empty `courses/` directory on first start so a fresh clone still works.
-
-If port `3001` is already taken, the server prints a hint with the exact `netstat` / `taskkill` / `PORT=` commands to free it (see [Troubleshooting](#troubleshooting)).
+---
 
 ## Project layout
 
 ```
-ocs-ohara/
-  server.js              # Express server, read-only API on port 3001 (PORT env)
-  package.json
-  public/                # Static frontend (served at /)
-    index.html           # Layout: navbar, course grid, view modal, toast
-    main.js              # Fetch list, render cards, open modal, trigger downloads
-    styles.css           # Card + chip styling layered on top of Bootstrap
-  courses/               # JSON course files, one per course (auto-created)
-    welcome-to-ohara.json
+ocb-ohara/
+├── index.html            # Self-contained: inline CSS + inline JS + Bootstrap CDN
+├── generate-index.js     # Build-time indexer (no npm dependencies)
+├── courses-index.json    # Generated manifest; consumed by index.html
+├── package.json          # Convenience scripts: `npm run build` and `npm start`
+└── courses/
+    └── *.json            # Source course files (one per course, served as-is)
 ```
 
-Runtime dependencies: **express ^4.19.2**. No build step, no transpilation, no client framework — the UI is plain DOM + Bootstrap 5 (loaded from a CDN).
+The `npm` scripts are aliases for `node generate-index.js`:
 
-## How it works
-
-1. On boot, `server.js` ensures `courses/` exists and registers three routes plus a catch-all that serves `index.html` for any non-API GET.
-2. `GET /api/courses` reads the directory synchronously, parses every non-hidden `.json` file, and returns a slim summary for each (`id`, `title`, `description`, `lessons`, `authors`, `createdAt`, `updatedAt`, `filename`). Bad files are logged and skipped so one broken file cannot take the library down. The list is sorted by `updatedAt` descending (newest first); ties fall back to filename order.
-3. The browser fetches the list, renders a responsive card grid (Bootstrap columns: `col-12 col-md-6 col-lg-4`), and lets the user either **View** the JSON in a modal or **Download** a pretty-printed copy.
-4. Download requests stream the JSON back with a `Content-Disposition: attachment; filename="…"` header. The server derives the download filename from the course's `title` (and prefixes a short slice of the `id` for uniqueness), so users get a readable file name instead of the on-disk UUID.
-
-## Add a new course
-
-Drop a `.json` file into the `courses/` folder and refresh the page. Hidden files (those starting with `.`) and non-`.json` files are ignored. The minimal shape the UI understands is:
-
-```json
-{
-  "id": "my-course",
-  "title": "My Course",
-  "description": "What learners will get out of this course.",
-  "lessons": [
-    { "id": "lesson-1", "title": "Lesson 1", "type": "text", "content": "..." }
-  ],
-  "createdAt": "2024-01-15T10:00:00.000Z",
-  "updatedAt": "2024-01-20T15:30:00.000Z"
-}
+```bash
+npm run build     # same as: node generate-index.js
+npm start         # same as: node generate-index.js
 ```
+
+They exist so the build step is discoverable from `package.json` and works the same on every platform.
+
+---
 
 ## Course schema
 
-The reader falls back gracefully when fields are missing:
+Every file in `courses/` is a single JSON object. The shape is **identical to what `open-course-builder` writes to its `db/<uuid>.json` store**, so the two projects stay in lock-step.
 
-- `id` / `title` → derived from the filename (without `.json`).
-- `description` → empty string (the card shows *“No description”*).
-- `lessons` → `[]` (the lesson badge shows `0`).
-- `authors` → `[]` (the author block is hidden).
-- `createdAt` / `updatedAt` → `null` (the updated chip is hidden; the list falls back to filename order).
+### Top-level fields
 
-A richer course with authors, tags, language, and tasks:
+| Field            | Type     | Required | Notes                                                                                  |
+| ---------------- | -------- | -------- | -------------------------------------------------------------------------------------- |
+| `id`             | string   | yes      | Stable identifier (typically a UUID). Surfaced in the UI and the download URL.         |
+| `title`          | string   | yes      | Card title and `<h1>`. Falls back to the filename (without `.json`) if missing.        |
+| `description`    | string   | no       | Card subtitle. Empty string is rendered as *“No description”*.                         |
+| `lessons`        | array    | no       | Ordered list of lesson objects (see below). Defaults to `[]`.                           |
+| `authors`        | array    | no       | List of author entries (see below). Defaults to `[]`.                                  |
+| `tags`           | string[] | no       | Free-form chips, e.g. `["js", "react"]`. Surfaced in the search haystack.              |
+| `courseLanguage` | string[] | no       | Language chips, e.g. `["english", "bangla"]`. Surfaced in the search haystack.          |
+| `tasks`          | array    | no       | Optional tasks/questions for learners (see below).                                     |
+| `createdAt`      | string   | no       | ISO-8601 timestamp.                                                                    |
+| `updatedAt`      | string   | no       | ISO-8601 timestamp. Drives the sort order of the catalog.                              |
 
-```json
-{
-  "id": "cb56dd8e-1c59-421c-8056-5e6a2e82c7ef",
-  "title": "test author",
-  "description": "this is course description",
-  "createdAt": "2026-06-10T10:49:22.133Z",
-  "updatedAt": "2026-06-10T11:25:14.567Z",
-  "lessons": [
-    {
-      "id": "c5bdec74-a3e1-4915-859a-89e1699ba425",
-      "title": "lesson name",
-      "type": "link",
-      "resource": "https://linkedin.com/in/rayanul-kader-chowdhury",
-      "notes": "",
-      "lessonNote": "",
-      "isCompleted": false,
-      "completeDate": null,
-      "createdAt": "2026-06-10T11:24:55.074Z"
-    }
-  ],
-  "authors": [
-    { "authorName": "rayanr", "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury" },
-    { "authorName": "rayan",  "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury" }
-  ],
-  "tags": ["js", "react", "node"],
-  "courseLanguage": ["english", "bangla"],
-  "tasks": [
-    {
-      "id": "51ed1a65-8dbf-40ad-ae07-43184ba728bf",
-      "title": "task",
-      "question": "task question is here",
-      "instruction": "llms instuction will go here",
-      "createdAt": "2026-06-10T11:25:14.567Z",
-      "submissions": []
-    }
-  ]
-}
-```
+Any extra fields are preserved verbatim on download — only the list view (`courses-index.json`) projects a known subset.
 
-The API **returns the full original object** for a single course (`GET /api/courses/:filename`) — including any extra fields you add. Only the **list view** (`GET /api/courses`) projects a known subset, so unrelated data is not shipped in the list payload.
-
-### Authors on the card
-
-When a course has an `authors` array, each entry is rendered as a small purple chip in its own labeled block (*“Authors”* with a people icon). Authors with an `authorLink` become clickable links (`target="_blank"`, `rel="noopener noreferrer"`); entries without a link are plain chips. Author chips stop click propagation so they do not open the course modal. The full list of author names is also exposed via the block's `title` tooltip.
-
-### Author entry shape
-
-| Field        | Type    | Notes                                                                 |
-| ------------ | ------- | --------------------------------------------------------------------- |
-| `authorName` | string  | Display label. Required in practice — entries without it are dropped. |
-| `authorLink` | string  | Optional. When present, the chip becomes a link to that URL.          |
-
-## API
-
-| Method | Path                              | Description                                                                                 |
-| ------ | --------------------------------- | ------------------------------------------------------------------------------------------- |
-| GET    | `/api/courses`                    | List of all courses with summary metadata (`id`, `title`, `description`, `lessons`, `authors`, `createdAt`, `updatedAt`, `filename`). |
-| GET    | `/api/courses/:filename`          | Full JSON object for a single course, with the original `filename` added.                  |
-| GET    | `/api/courses/:filename/download` | Streams a pretty-printed JSON copy with `Content-Disposition: attachment; filename="…"`.   |
-
-`:filename` must be a plain file name — no `/`, `\`, `..`, or other path tricks. See [Filename safety](#filename-safety-and-security-model).
-
-All error responses are JSON: `{ "error": "message" }`.
-
-## Frontend
-
-`public/main.js` is a single IIFE that:
-
-- Fetches `/api/courses` on load and renders the grid.
-- Renders each card with: title, description (or *“No description”*), lesson-count badge, authors block (only when there are any), filename chip, updated chip, and **View** / **Download** buttons.
-- Opens the view modal on card click and shows the full pretty-printed JSON plus a *Download JSON* button that re-uses the per-card download endpoint.
-- Triggers downloads by creating a temporary `<a href="/api/courses/…/download">` and clicking it; the server's `Content-Disposition` header supplies the filename.
-- Surfaces API failures via a Bootstrap toast in the bottom-right corner.
-
-CDN assets (no bundler needed):
-
-- `bootstrap@5.3.3` — layout, grid, modal, toast.
-- `bootstrap-icons@1.11.3` — icon set.
-
-The catch-all route `app.get(/^\/(?!api).*/, …)` serves `index.html` for any non-`/api/*` GET, so deep links and would-be client-side routes degrade to the SPA shell.
-
-## Filename safety and security model
-
-Every `:filename` route goes through `safeCoursePath()`:
-
-1. The raw param is rejected if it contains `/`, `\`, or `..` (400).
-2. The remaining name is resolved against `courses/` with `path.resolve`.
-3. The resolved path must equal `courses/` or start with `courses/` + `path.sep`. Otherwise 400.
-4. The file is then checked with `fs.existsSync` (404 if missing) and re-parsed with `readCourseFile()`, which throws if the JSON is malformed or the root is not a plain object.
-
-The download endpoint additionally calls `safeFilenameBase()` to scrub the output filename (see below).
-
-## Download filename behavior
-
-The `Content-Disposition` filename is built from the course's `title` (or the on-disk filename if missing), sanitised through `safeFilenameBase()`:
-
-- Lower/upper case letters, digits, dot, underscore, and hyphen are kept.
-- Everything else (including spaces) collapses to a single `-`.
-- Leading/trailing `-` are trimmed.
-- Truncated to 60 characters.
-- Falls back to `course` if the result is empty.
-
-If the course has an `id`, the first 8 characters are appended with a `-` separator, so two courses with identical titles still produce distinct downloads. The extension is always `.json`.
-
-Examples:
-
-| `title`     | `id`         | Download filename           |
-| ----------- | ------------ | --------------------------- |
-| `My Course` | `my-course`  | `My-Course-my-cours.json`   |
-| `!!!`       | *(none)*     | `course.json`               |
-| `データ`     | `abc123…`    | `-abc12345.json`            |
-
-## Error handling
-
-- **Bad JSON in a course file** — logged to the server console (`Skipping unreadable course file …`) and excluded from the list. Single-file errors never break the rest of the library.
-- **404** — `Course not found` when the file does not exist.
-- **400** — `Invalid filename` for path-traversal attempts; `Filename is required` for empty params.
-- **500** — `File is not valid JSON` / `File is not a course object` for files that exist but cannot be parsed.
-- **Port in use** — the server prints the exact `netstat` / `taskkill` / `PORT=` commands to free it and exits with code 1.
-
-## Troubleshooting
-
-**`Port 3001 is already in use.`** — The server prints a hint with the exact commands. On Windows PowerShell:
-
-```powershell
-netstat -ano | findstr :3001
-taskkill /PID <pid> /F
-```
-
-Or pick another port: `$env:PORT=3002; npm start`.
-
-**`Failed to load courses: …` toast** — open DevTools → Network. The `/api/courses` request will show the exact error. Common causes: port already in use, a non-`.json` file in `courses/` that confused an earlier version, or a server that wasn't restarted after editing `server.js`.
-
-**Course card shows no authors** — confirm the JSON has an `authors` array at the top level (not nested under another key) and that each entry has an `authorName`. Entries without a name are dropped silently.
-
-**The page refreshes to a blank screen on a deep link** — the catch-all route serves `index.html` for any non-`/api/*` GET, so client-side routes would work if you added a router. As shipped, all navigation stays on `/`.
-
-## Static mode (GitHub Pages)
-
-The project also ships a fully static build with **no server runtime**. Everything Express used to do is folded into a build-time indexer and a self-contained `index.html`.
-
-### What changes
-
-| | Express mode | Static mode |
-| --- | --- | --- |
-| Runtime | `node server.js` (Express) | None — pure static files |
-| Course list source | `GET /api/courses` (live `fs.readdir`) | `./courses-index.json` (generated) |
-| Course detail source | `GET /api/courses/:filename` | Direct fetch of `courses/<filename>` |
-| Download | `GET /api/courses/:filename/download` (with `Content-Disposition`) | Plain `<a href="courses/…" download>` |
-| Search | None (all courses listed) | Client-side filter on title, description, tags, `courseLanguage`, `authorName` |
-| Hosting | Anywhere Node runs | GitHub Pages, Netlify, S3, `python -m http.server`, etc. |
-
-### Files for static mode
-
-```
-ocs-ohara/
-├── index.html            # Self-contained: inline CSS + inline JS + Bootstrap CDN
-├── generate-index.js     # Build-time indexer (no npm deps)
-├── courses-index.json    # Generated; consumed by index.html
-└── courses/
-    └── *.json            # Source course files (served as-is)
-```
-
-The old `server.js` and `public/` are still on disk for the Express path but are **not** used in static mode.
-
-### Build the index
-
-From the repo root:
-
-```bash
-node generate-index.js
-```
-
-The script walks `./courses/`, reads every non-hidden `.json` file, and writes `./courses-index.json` with a slim entry per course:
+### Authors
 
 ```json
-{
-  "filename": "e79c6c29-136b-4572-b208-7ec9b475b1c0.json",
-  "title": "Intro to Ohara",
-  "description": "…",
-  "tags": ["fundamentals"],
-  "courseLanguage": ["en"],
-  "authors": [{ "authorName": "Jane Doe", "authorLink": "https://…" }],
-  "lessonCount": 4,
-  "updatedAt": "2025-01-01T00:00:00.000Z"
-}
+"authors": [
+  { "authorName": "Jane Doe", "authorLink": "https://janedoe.dev" }
+]
 ```
 
-Notes:
+| Field        | Type   | Notes                                                                                  |
+| ------------ | ------ | -------------------------------------------------------------------------------------- |
+| `authorName` | string | Display label. **Required in practice** — entries without it are dropped from the UI. |
+| `authorLink` | string | Optional. When present, the author chip becomes a link (`target="_blank"`, `rel="noopener noreferrer"`). |
 
+Each author is rendered as a small purple chip in its own labeled block on the card. Clicking a chip does **not** open the course modal.
+
+### Lessons
+
+```json
+"lessons": [
+  {
+    "id": "c5bdec74-a3e1-4915-859a-89e1699ba425",
+    "title": "Lesson name",
+    "type": "text",
+    "content": "Lesson body — supports plain text or markdown depending on `type`.",
+    "resource": "",
+    "notes": "",
+    "lessonNote": "",
+    "isCompleted": false,
+    "completeDate": null,
+    "createdAt": "2026-06-10T11:24:55.074Z"
+  }
+]
+```
+
+| Field          | Type             | Notes                                                                                                          |
+| -------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`           | string           | Stable per-lesson identifier.                                                                                  |
+| `title`        | string           | Lesson header in the modal.                                                                                    |
+| `type`         | string           | One of `text`, `link`, or `markdown`. Drives how `content` / `resource` is rendered.                           |
+| `content`      | string           | Body. For `type: "link"`, this is usually empty and `resource` carries the URL.                                |
+| `resource`     | string           | URL for `type: "link"` lessons. Rendered as a clickable button.                                                |
+| `notes`        | string           | Optional short note attached to the lesson.                                                                    |
+| `lessonNote`   | string           | Optional long-form note.                                                                                       |
+| `isCompleted`  | boolean          | Progress flag.                                                                                                  |
+| `completeDate` | string \| null   | ISO-8601 timestamp, or `null` while in progress.                                                               |
+| `createdAt`    | string           | ISO-8601 timestamp.                                                                                            |
+
+The modal **List** view renders each lesson as a card with its type, body, and an external link button when applicable. The **Raw** view shows the same data as pretty-printed JSON.
+
+### Tags and language
+
+```json
+"tags": ["js", "react", "node"],
+"courseLanguage": ["english", "bangla"]
+```
+
+Both default to `[]` and render as small gray chips. They're also part of the client-side search haystack, so a course will match a query against its tags and language as well as its title and description.
+
+### Tasks
+
+```json
+"tasks": [
+  {
+    "id": "51ed1a65-8dbf-40ad-ae07-43184ba728bf",
+    "title": "Task title",
+    "question": "Task question is here",
+    "instruction": "LLM/system instruction will go here",
+    "createdAt": "2026-06-10T11:25:14.567Z",
+    "submissions": []
+  }
+]
+```
+
+Tasks are preserved verbatim on download but are not rendered in this static catalog's UI. They're stored alongside the course for round-tripping with `open-course-builder`, which does display them.
+
+---
+
+## The `courses-index.json` index file
+
+`courses-index.json` is the **only build artifact** of this site. It is generated by `generate-index.js` and consumed by `index.html` on page load. Commit it alongside your course files so GitHub Pages (which serves a static snapshot) can see the latest list.
+
+Shape:
+
+```json
+[
+  {
+    "filename": "e79c6c29-136b-4572-b208-7ec9b475b1c0.json",
+    "title": "Intro to Ohara",
+    "description": "…",
+    "tags": ["fundamentals"],
+    "courseLanguage": ["en"],
+    "authors": [{ "authorName": "Jane Doe", "authorLink": "https://…" }],
+    "lessonCount": 4,
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+]
+```
+
+Build rules (in `generate-index.js`):
+
+- Walks `./courses/` and reads every non-hidden `.json` file.
 - Hidden files (names starting with `.`) are skipped.
-- Files that fail to parse are logged and skipped, never breaking the build.
+- Files that fail to parse are logged to the console and skipped — they never break the build.
 - Entries without an `authorName` are dropped from `authors`.
 - `tags` and `courseLanguage` default to `[]` if missing.
-- `lessonCount` is `lessons.length` if `lessons` is an array, else `0`.
-- Entries are sorted by `updatedAt` descending (missing dates sink to the bottom).
+- `lessonCount` is `lessons.length` when `lessons` is an array, else `0`.
+- Entries are sorted by `updatedAt` **descending** (newest first); courses with a missing date sink to the bottom, falling back to filename order.
 
-The list endpoint in Express mode returns the same shape, so the static and dynamic paths stay in lock-step.
+---
 
-### Deploy to GitHub Pages
+## Add a new course
 
-1. Run `node generate-index.js` and commit the resulting `courses-index.json`.
-2. Push to `main`.
-3. In the repo settings → **Pages**, set the source to **Deploy from a branch** → `main` → `/ (root)`.
-4. Wait for the Pages build. The site is now served at `https://<user>.github.io/<repo>/`.
+1. Drop a `.json` file into `courses/`. The filename is used as the on-disk identifier and becomes part of the download URL, so UUIDs are fine (`e79c6c29-136b-4572-b208-7ec9b475b1c0.json`).
+2. Match the [Course schema](#course-schema). The minimal shape the UI understands:
+   ```json
+   {
+     "id": "my-course",
+     "title": "My Course",
+     "description": "What learners will get out of this course.",
+     "lessons": [
+       { "id": "lesson-1", "title": "Lesson 1", "type": "text", "content": "..." }
+     ],
+     "createdAt": "2024-01-15T10:00:00.000Z",
+     "updatedAt": "2024-01-20T15:30:00.000Z"
+   }
+   ```
+3. Regenerate the index:
+   ```bash
+   node generate-index.js
+   ```
+4. Commit both files and push:
+   ```bash
+   git add courses/my-course.json courses-index.json
+   git commit -m "Add my-course"
+   git push
+   ```
 
-No build step, no `_config.yml`, no `gh-pages` branch — `index.html` lives at the repo root and reads `courses-index.json` and `courses/*.json` as sibling paths.
+Hidden files (names starting with `.`) and non-`.json` files are ignored by both the indexer and the page.
 
-### Refreshing after adding a course
+---
+
+## Use a downloaded course in `open-course-builder`
+
+The two projects share an exact JSON shape, so a course downloaded from this catalog imports cleanly into `open-course-builder`:
+
+1. In this catalog, click **Download** on any course card. The browser saves the original `.json` file.
+2. In `open-course-builder`, use its **Import** feature and pick that file.
+3. The course appears with all its lessons, authors, tags, language, and tasks intact.
+
+Conversely, a course exported from `open-course-builder`'s `db/<uuid>.json` store can be dropped straight into this repo's `courses/` folder — re-run the indexer and it'll show up in the catalog.
+
+---
+
+## Deploy to GitHub Pages
+
+1. Make sure `courses-index.json` is up to date:
+   ```bash
+   node generate-index.js
+   git add courses-index.json
+   git commit -m "Refresh index"
+   ```
+2. Push to `main`:
+   ```bash
+   git push origin main
+   ```
+3. In the GitHub repo → **Settings** → **Pages**:
+   - **Source:** *Deploy from a branch*
+   - **Branch:** `main`
+   - **Folder:** `/ (root)`
+4. Save. GitHub will build the Pages site (usually under a minute) and the catalog will be live at:
+   ```
+   https://<your-github-username>.github.io/ocb-ohara/
+   ```
+
+There is no `gh-pages` branch, no `_config.yml`, no build action — `index.html` lives at the repo root and reads `courses-index.json` + `courses/*.json` as sibling paths.
+
+**Custom domain?** Drop a `CNAME` file at the repo root containing your domain, then point DNS at GitHub's Pages servers per their docs.
+
+---
+
+## Local preview
+
+You can preview the site without deploying it, and without `npm install`:
 
 ```bash
-# 1. drop your file
-cp my-new-course.json courses/
-
-# 2. rebuild the index
-node generate-index.js
-
-# 3. commit both the course file and the regenerated index
-git add courses/my-new-course.json courses-index.json
-git commit -m "Add my new course"
-git push
-```
-
-GitHub Pages will pick up the new commit on the next deploy cycle (usually under a minute).
-
-### Local preview
-
-You can preview the static site without Node at all:
-
-```bash
-# Python 3
+# Python 3 (no install needed if you have Python)
 python -m http.server 8080
 
-# or, if you have any other static server
+# or any other static server
 npx http-server -p 8080
 ```
 
 Then open <http://localhost:8080/>. The page will fetch `courses-index.json` and individual `courses/*.json` files over HTTP, which is the same code path GitHub Pages uses.
 
-### Why `download` works as a plain link
+> **Tip:** Double-clicking `index.html` also works for a quick peek — modern browsers happily fetch local JSON files for an `http://` or `file://` page. A local server is only required if you run into CORS quirks with your specific browser.
 
-In static mode the **Download** button is a real `<a href="courses/<filename>" download>`. The browser streams the original file from disk with its existing filename and `application/json` MIME. The Express version's `Content-Disposition` rewrite is no longer needed because there's no server to rewrite anything. The trade-off: download filenames use the on-disk UUID-based name, not the prettified `title-id` form the server produced.
+---
+
+## Filename safety and security model
+
+Because this site is fully static, there is **no server-side input** to validate. The only paths that ever get resolved are the ones you put on disk in `courses/`. That keeps the security model intentionally small:
+
+- The indexer **skips** filenames starting with `.` (hidden files).
+- The indexer **skips** non-`.json` files.
+- The indexer **catches** parse errors and logs them; a malformed file never breaks the build.
+- The download flow is a plain `<a href="courses/<filename>" download>`. The browser fetches a file that already exists on disk — there is no path-traversal vector because nothing resolves user input.
+- The full original JSON is shipped to the client when a course is opened. Don't put secrets in a course file; this catalog is a public surface by design.
+
+If you ever add a server in front of this site, follow the same rules used in the now-removed Express build:
+
+- Reject any `:filename` containing `/`, `\`, or `..` with `400`.
+- Resolve the path against `courses/` with `path.resolve` and confirm the result is still under `courses/`.
+- Re-parse the file as JSON before responding.
+
+---
+
+## Error handling and edge cases
+
+- **Malformed course file** — logged to the console by `generate-index.js` and skipped. The catalog is built from the remaining valid files.
+- **No courses yet** — the page renders an explicit empty state ("No courses found") with a hint to run `node generate-index.js` or drop a file in `courses/`.
+- **Search returns no results** — same empty-state element, with a "matching …" suffix in the count.
+- **Failed network request** — a Bootstrap toast in the bottom-right corner surfaces the error, and an explicit "Failed to load courses" state replaces the grid.
+- **Empty `lessons` / `authors` / `tags` / `courseLanguage`** — the UI hides those blocks instead of showing empty chips.
+- **Missing `id` / `title` / `description` / `updatedAt`** — the indexer and the page both fall back gracefully (filename for `id`/`title`, empty string for `description`, filename order for sorting).
+
+---
+
+## Troubleshooting
+
+**The page shows "Failed to load courses".**
+Open the browser DevTools → Network tab. The `courses-index.json` request will show the exact error. Common causes:
+- You opened the page from a path where the relative `./courses-index.json` URL can't resolve.
+- You haven't run `node generate-index.js` yet, or the file got deleted.
+- A CORS quirk with `file://` in your specific browser — switch to `python -m http.server 8080` to test.
+
+**A course I added isn't showing up.**
+- Did you re-run `node generate-index.js` after dropping the file?
+- Is the file actually a `.json` file (not `.json.txt` or a hidden `.foo.json`)?
+- Is the JSON valid? `node -e "JSON.parse(require('fs').readFileSync('courses/your-file.json','utf8'))"` will tell you.
+- Did you commit the regenerated `courses-index.json`?
+
+**The download button gives me a UUID filename, not a pretty one.**
+That's intentional in static mode: the browser uses the on-disk filename (typically a UUID) for the download. The catalog doesn't rewrite the `Content-Disposition` header because there's no server to rewrite it. If you need a pretty name, rename the file in `courses/` before regenerating the index.
+
+**The site looks unstyled.**
+The page depends on `bootstrap@5.3.3` and `bootstrap-icons@1.11.3` from a CDN. If you're offline or the CDN is blocked, the grid will still work but the modal/cards will look bare. Self-host the assets and update the `<link>` / `<script>` tags in `index.html` if you need full offline support.
+
+---
+
+## License
+
+MIT — see `LICENSE` if/when added, or treat the source as MIT-licensed by default.
