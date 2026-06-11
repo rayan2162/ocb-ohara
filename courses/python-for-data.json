@@ -1,0 +1,73 @@
+{
+  "id": "a1f0c1a0-0005-4005-8005-000000000005",
+  "title": "Python for Data Analysis",
+  "description": "Use pandas to load, clean, and summarize real-world CSV data. We'll go from a 200MB messy export to a chart-ready DataFrame in seven short lessons.",
+  "createdAt": "2026-01-08T09:00:00.000Z",
+  "updatedAt": "2026-03-25T11:00:00.000Z",
+  "lessons": [
+    {
+      "id": "py-1",
+      "title": "Reading CSVs without rage",
+      "type": "text",
+      "content": "pd.read_csv has forty-two parameters. You only need six.",
+      "createdAt": "2026-01-08T09:00:00.000Z"
+    },
+    {
+      "id": "py-2",
+      "title": "Indexing, loc, and iloc",
+      "type": "text",
+      "content": "Use loc for labels, iloc for positions. Never chain [] on a DataFrame.",
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "py-3",
+      "title": "groupby in anger",
+      "type": "text",
+      "content": "Split, apply, combine. The three verbs are enough.",
+      "createdAt": "2026-01-22T09:00:00.000Z"
+    },
+    {
+      "id": "py-4",
+      "title": "Merging and joining",
+      "type": "text",
+      "content": "merge is the vlookup of dataframes. on, left_on, right_on.",
+      "createdAt": "2026-01-29T09:00:00.000Z"
+    },
+    {
+      "id": "py-5",
+      "title": "Quick plots with matplotlib",
+      "type": "text",
+      "content": "df.plot() is fine for an internal dashboard. Not for a paper.",
+      "createdAt": "2026-02-05T09:00:00.000Z"
+    },
+    {
+      "id": "py-6",
+      "title": "Reading from a database",
+      "type": "text",
+      "content": "pd.read_sql is just read_csv with extra steps.",
+      "createdAt": "2026-02-12T09:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Lukas Müller",
+      "authorLink": "https://example.com/lukas"
+    },
+    {
+      "authorName": "Yuki Tanaka",
+      "authorLink": "https://example.com/yuki"
+    }
+  ],
+  "tags": ["python", "pandas", "data", "analytics"],
+  "courseLanguage": ["english", "german", "japanese"],
+  "tasks": [
+    {
+      "id": "py-task-1",
+      "title": "Clean a sales CSV",
+      "question": "Given a CSV with mixed date formats, return a tidy DataFrame.",
+      "instruction": "Use pd.to_datetime with format='mixed'. Drop rows with null totals.",
+      "createdAt": "2026-01-22T09:00:00.000Z",
+      "submissions": []
+    }
+  ]
+}

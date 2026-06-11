@@ -40,5 +40,177 @@
     ],
     "lessonCount": 1,
     "updatedAt": "2026-06-10T11:25:14.567Z"
+  },
+  {
+    "filename": "react-from-scratch.json",
+    "title": "React from Scratch",
+    "description": "Build a working React app without the CLI noise. We start with a single HTML file, add JSX, component composition, hooks, and finish with a small router — all in your browser console.",
+    "tags": [
+      "react",
+      "frontend",
+      "hooks",
+      "spa"
+    ],
+    "courseLanguage": [
+      "english",
+      "korean"
+    ],
+    "authors": [
+      {
+        "authorName": "Devon Park",
+        "authorLink": "https://example.com/devon"
+      },
+      {
+        "authorName": "Mariana Cole",
+        "authorLink": "https://example.com/mariana"
+      }
+    ],
+    "lessonCount": 5,
+    "updatedAt": "2026-06-01T08:15:00.000Z"
+  },
+  {
+    "filename": "js-fundamentals.json",
+    "title": "JavaScript Fundamentals",
+    "description": "A practical introduction to modern JavaScript: variables, functions, closures, the event loop, async/await, and the module system. By the end you'll be comfortable reading and writing real ES2022 code.",
+    "tags": [
+      "javascript",
+      "fundamentals",
+      "es2022"
+    ],
+    "courseLanguage": [
+      "english"
+    ],
+    "authors": [
+      {
+        "authorName": "Mariana Cole",
+        "authorLink": "https://example.com/mariana"
+      }
+    ],
+    "lessonCount": 4,
+    "updatedAt": "2026-05-30T18:42:11.000Z"
+  },
+  {
+    "filename": "node-backend-basics.json",
+    "title": "Node.js Backend Basics",
+    "description": "Stand up an HTTP server with the built-in `node:http` module, then layer routing, JSON parsing, and file persistence on top. No frameworks — you'll learn what Express is hiding from you.",
+    "tags": [
+      "node",
+      "backend",
+      "http",
+      "fundamentals"
+    ],
+    "courseLanguage": [
+      "english",
+      "hindi"
+    ],
+    "authors": [
+      {
+        "authorName": "Aarav Singh",
+        "authorLink": "https://example.com/aarav"
+      }
+    ],
+    "lessonCount": 4,
+    "updatedAt": "2026-05-22T14:00:00.000Z"
+  },
+  {
+    "filename": "css-grid-deep-dive.json",
+    "title": "CSS Grid: A Deep Dive",
+    "description": "Stop fighting flexbox for two-dimensional layouts. Grid gives you rows AND columns at the same time, and once you internalize the line-based placement model, the rest is muscle memory.",
+    "tags": [
+      "css",
+      "layout",
+      "frontend"
+    ],
+    "courseLanguage": [
+      "english"
+    ],
+    "authors": [
+      {
+        "authorName": "Priya Raman",
+        "authorLink": "https://example.com/priya"
+      }
+    ],
+    "lessonCount": 3,
+    "updatedAt": "2026-04-18T16:30:00.000Z"
+  },
+  {
+    "filename": "python-for-data.json",
+    "title": "Python for Data Analysis",
+    "description": "Use pandas to load, clean, and summarize real-world CSV data. We'll go from a 200MB messy export to a chart-ready DataFrame in seven short lessons.",
+    "tags": [
+      "python",
+      "pandas",
+      "data",
+      "analytics"
+    ],
+    "courseLanguage": [
+      "english",
+      "german",
+      "japanese"
+    ],
+    "authors": [
+      {
+        "authorName": "Lukas Müller",
+        "authorLink": "https://example.com/lukas"
+      },
+      {
+        "authorName": "Yuki Tanaka",
+        "authorLink": "https://example.com/yuki"
+      }
+    ],
+    "lessonCount": 6,
+    "updatedAt": "2026-03-25T11:00:00.000Z"
+  },
+  {
+    "filename": "git-from-zero.json",
+    "title": "Git from Zero",
+    "description": "If 'detached HEAD' sounds scary, this is for you. A short, opinionated tour of the seven Git commands you'll use 95% of the time, with mental models for what's actually happening on disk.",
+    "tags": [
+      "git",
+      "tooling",
+      "fundamentals"
+    ],
+    "courseLanguage": [
+      "english",
+      "bangla"
+    ],
+    "authors": [
+      {
+        "authorName": "Rayan Chowdhury",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      }
+    ],
+    "lessonCount": 3,
+    "updatedAt": "2026-02-10T15:00:00.000Z"
+  },
+  {
+    "filename": "writing-for-engineers.json",
+    "title": "Writing for Engineers",
+    "description": "A short, deliberately small course on writing clear technical prose. PR descriptions, design docs, postmortems, and the README you're reading right now.",
+    "tags": [
+      "writing",
+      "communication"
+    ],
+    "courseLanguage": [
+      "english"
+    ],
+    "authors": [
+      {
+        "authorName": "Sasha Levin",
+        "authorLink": ""
+      }
+    ],
+    "lessonCount": 2,
+    "updatedAt": "2025-11-30T12:00:00.000Z"
+  },
+  {
+    "filename": "minimal-example.json",
+    "title": "Minimal Course",
+    "description": "",
+    "tags": [],
+    "courseLanguage": [],
+    "authors": [],
+    "lessonCount": 1,
+    "updatedAt": "2025-09-15T10:00:00.000Z"
   }
 ]

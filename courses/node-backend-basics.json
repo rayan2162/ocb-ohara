@@ -1,0 +1,46 @@
+{
+  "id": "a1f0c1a0-0003-4003-8003-000000000003",
+  "title": "Node.js Backend Basics",
+  "description": "Stand up an HTTP server with the built-in `node:http` module, then layer routing, JSON parsing, and file persistence on top. No frameworks — you'll learn what Express is hiding from you.",
+  "createdAt": "2026-03-01T10:00:00.000Z",
+  "updatedAt": "2026-05-22T14:00:00.000Z",
+  "lessons": [
+    {
+      "id": "node-1",
+      "title": "Your first http.createServer",
+      "type": "text",
+      "content": "The request is a stream. The response is a stream. Streams are not magic.",
+      "createdAt": "2026-03-01T10:00:00.000Z"
+    },
+    {
+      "id": "node-2",
+      "title": "Routing by method and path",
+      "type": "text",
+      "content": "Switch on req.method and req.url. That's it.",
+      "createdAt": "2026-03-05T10:00:00.000Z"
+    },
+    {
+      "id": "node-3",
+      "title": "Parsing JSON bodies",
+      "type": "text",
+      "content": "Buffer the chunks, JSON.parse the buffer, validate the shape, then act.",
+      "createdAt": "2026-03-12T10:00:00.000Z"
+    },
+    {
+      "id": "node-4",
+      "title": "Persisting to disk",
+      "type": "text",
+      "content": "fs.writeFileSync is fine for a course. Real systems use a database.",
+      "createdAt": "2026-03-19T10:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Aarav Singh",
+      "authorLink": "https://example.com/aarav"
+    }
+  ],
+  "tags": ["node", "backend", "http", "fundamentals"],
+  "courseLanguage": ["english", "hindi"],
+  "tasks": []
+}

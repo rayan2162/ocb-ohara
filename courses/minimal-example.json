@@ -1,0 +1,17 @@
+{
+  "id": "a1f0c1a0-0008-4008-8008-000000000008",
+  "title": "Minimal Course",
+  "createdAt": "2025-09-01T10:00:00.000Z",
+  "updatedAt": "2025-09-15T10:00:00.000Z",
+  "lessons": [
+    {
+      "id": "min-1",
+      "title": "Only one lesson",
+      "type": "text",
+      "content": "Sometimes that's all you need."
+    }
+  ],
+  "authors": [],
+  "tags": [],
+  "courseLanguage": []
+}

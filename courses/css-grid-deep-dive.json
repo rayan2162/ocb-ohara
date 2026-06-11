@@ -1,0 +1,39 @@
+{
+  "id": "a1f0c1a0-0004-4004-8004-000000000004",
+  "title": "CSS Grid: A Deep Dive",
+  "description": "Stop fighting flexbox for two-dimensional layouts. Grid gives you rows AND columns at the same time, and once you internalize the line-based placement model, the rest is muscle memory.",
+  "createdAt": "2026-02-14T08:00:00.000Z",
+  "updatedAt": "2026-04-18T16:30:00.000Z",
+  "lessons": [
+    {
+      "id": "grid-1",
+      "title": "grid-template-columns and fr units",
+      "type": "text",
+      "content": "fr distributes free space. 1fr 1fr 1fr is a three-column equal grid.",
+      "createdAt": "2026-02-14T08:00:00.000Z"
+    },
+    {
+      "id": "grid-2",
+      "title": "Line-based placement",
+      "type": "text",
+      "content": "grid-column: 1 / 3 means start at line 1, end before line 3.",
+      "createdAt": "2026-02-20T08:00:00.000Z"
+    },
+    {
+      "id": "grid-3",
+      "title": "Named areas",
+      "type": "text",
+      "content": "grid-template-areas turns your CSS into a wireframe.",
+      "createdAt": "2026-02-27T08:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Priya Raman",
+      "authorLink": "https://example.com/priya"
+    }
+  ],
+  "tags": ["css", "layout", "frontend"],
+  "courseLanguage": ["english"],
+  "tasks": []
+}

@@ -1,0 +1,39 @@
+{
+  "id": "a1f0c1a0-0006-4006-8006-000000000006",
+  "title": "Git from Zero",
+  "description": "If 'detached HEAD' sounds scary, this is for you. A short, opinionated tour of the seven Git commands you'll use 95% of the time, with mental models for what's actually happening on disk.",
+  "createdAt": "2025-12-01T10:00:00.000Z",
+  "updatedAt": "2026-02-10T15:00:00.000Z",
+  "lessons": [
+    {
+      "id": "git-1",
+      "title": "init, add, commit",
+      "type": "text",
+      "content": "A commit is a snapshot, not a diff. The diffs are computed on demand.",
+      "createdAt": "2025-12-01T10:00:00.000Z"
+    },
+    {
+      "id": "git-2",
+      "title": "Branches are pointers",
+      "type": "text",
+      "content": "main is just a name that points at a commit. So is feature/login.",
+      "createdAt": "2025-12-08T10:00:00.000Z"
+    },
+    {
+      "id": "git-3",
+      "title": "The three trees",
+      "type": "text",
+      "content": "HEAD, the index, and the working directory. reset moves things between them.",
+      "createdAt": "2025-12-15T10:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Rayan Chowdhury",
+      "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+    }
+  ],
+  "tags": ["git", "tooling", "fundamentals"],
+  "courseLanguage": ["english", "bangla"],
+  "tasks": []
+}

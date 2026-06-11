@@ -1,0 +1,47 @@
+{
+  "id": "a1f0c1a0-0001-4001-8001-000000000001",
+  "title": "JavaScript Fundamentals",
+  "description": "A practical introduction to modern JavaScript: variables, functions, closures, the event loop, async/await, and the module system. By the end you'll be comfortable reading and writing real ES2022 code.",
+  "createdAt": "2026-05-02T09:00:00.000Z",
+  "updatedAt": "2026-05-30T18:42:11.000Z",
+  "lessons": [
+    {
+      "id": "a1f0-lesson-1",
+      "title": "Values, types, and variables",
+      "type": "text",
+      "content": "JavaScript has seven primitive types. The rest are objects.",
+      "createdAt": "2026-05-02T09:00:00.000Z"
+    },
+    {
+      "id": "a1f0-lesson-2",
+      "title": "Functions and scope",
+      "type": "text",
+      "content": "Functions are first-class values. Closures capture the surrounding lexical environment.",
+      "createdAt": "2026-05-04T09:00:00.000Z"
+    },
+    {
+      "id": "a1f0-lesson-3",
+      "title": "The event loop",
+      "type": "link",
+      "resource": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop",
+      "notes": "Read the 'Run-to-completion' section carefully.",
+      "createdAt": "2026-05-08T09:00:00.000Z"
+    },
+    {
+      "id": "a1f0-lesson-4",
+      "title": "Async / await in practice",
+      "type": "text",
+      "content": "Promises are values, not callbacks. async functions are syntax sugar over them.",
+      "createdAt": "2026-05-12T09:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Mariana Cole",
+      "authorLink": "https://example.com/mariana"
+    }
+  ],
+  "tags": ["javascript", "fundamentals", "es2022"],
+  "courseLanguage": ["english"],
+  "tasks": []
+}

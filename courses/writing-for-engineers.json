@@ -1,0 +1,31 @@
+{
+  "id": "a1f0c1a0-0007-4007-8007-000000000007",
+  "title": "Writing for Engineers",
+  "description": "A short, deliberately small course on writing clear technical prose. PR descriptions, design docs, postmortems, and the README you're reading right now.",
+  "createdAt": "2025-10-20T10:00:00.000Z",
+  "updatedAt": "2025-11-30T12:00:00.000Z",
+  "lessons": [
+    {
+      "id": "writing-1",
+      "title": "Lead with the conclusion",
+      "type": "text",
+      "content": "The reader is busy. Tell them the answer in the first sentence.",
+      "createdAt": "2025-10-20T10:00:00.000Z"
+    },
+    {
+      "id": "writing-2",
+      "title": "Cut your first paragraph in half",
+      "type": "text",
+      "content": "Background goes after the point, not before.",
+      "createdAt": "2025-10-27T10:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Sasha Levin"
+    }
+  ],
+  "tags": ["writing", "communication"],
+  "courseLanguage": ["english"],
+  "tasks": []
+}

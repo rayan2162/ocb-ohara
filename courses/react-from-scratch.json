@@ -1,0 +1,66 @@
+{
+  "id": "a1f0c1a0-0002-4002-8002-000000000002",
+  "title": "React from Scratch",
+  "description": "Build a working React app without the CLI noise. We start with a single HTML file, add JSX, component composition, hooks, and finish with a small router — all in your browser console.",
+  "createdAt": "2026-04-10T12:00:00.000Z",
+  "updatedAt": "2026-06-01T08:15:00.000Z",
+  "lessons": [
+    {
+      "id": "react-1",
+      "title": "Hello, JSX",
+      "type": "text",
+      "content": "JSX is just function calls. Every tag becomes a React.createElement call.",
+      "createdAt": "2026-04-10T12:00:00.000Z"
+    },
+    {
+      "id": "react-2",
+      "title": "Components and props",
+      "type": "text",
+      "content": "A component is a function that returns markup. Props are the arguments.",
+      "createdAt": "2026-04-15T12:00:00.000Z"
+    },
+    {
+      "id": "react-3",
+      "title": "useState and useEffect",
+      "type": "text",
+      "content": "State is per-component. Effects run after commit.",
+      "createdAt": "2026-04-22T12:00:00.000Z"
+    },
+    {
+      "id": "react-4",
+      "title": "Lifting state up",
+      "type": "text",
+      "content": "When two siblings need the same data, the parent owns it.",
+      "createdAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "id": "react-5",
+      "title": "A tiny router, by hand",
+      "type": "text",
+      "content": "window.location.pathname + popstate is enough to start.",
+      "createdAt": "2026-05-08T12:00:00.000Z"
+    }
+  ],
+  "authors": [
+    {
+      "authorName": "Devon Park",
+      "authorLink": "https://example.com/devon"
+    },
+    {
+      "authorName": "Mariana Cole",
+      "authorLink": "https://example.com/mariana"
+    }
+  ],
+  "tags": ["react", "frontend", "hooks", "spa"],
+  "courseLanguage": ["english", "korean"],
+  "tasks": [
+    {
+      "id": "react-task-1",
+      "title": "Build a counter with useState",
+      "question": "Create a counter component that increments and decrements.",
+      "instruction": "Use the useState hook. No external libraries.",
+      "createdAt": "2026-04-22T12:00:00.000Z",
+      "submissions": []
+    }
+  ]
+}
