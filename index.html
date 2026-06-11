@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OCS Ohara</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <style>
+      :root {
+        --ocb-bg: #f7f8fa;
+        --ocb-border: #e6e8ec;
+        --ocb-muted: #6b7280;
+        --ocb-radius: 12px;
+      }
+
+      body {
+        background: var(--ocb-bg);
+        color: #1f2937;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+          Arial, sans-serif;
+      }
+
+      .navbar {
+        backdrop-filter: saturate(180%) blur(8px);
+      }
+
+      /* ---------- Course card: same look as open-course-builder ---------- */
+      .course-card {
+        background: #fff;
+        border: 1px solid var(--ocb-border);
+        border-radius: var(--ocb-radius);
+        padding: 1.1rem 1.25rem;
+        height: 100%;
+        cursor: pointer;
+        transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .course-card:hover {
+        border-color: #c7d2fe;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+        transform: translateY(-1px);
+      }
+
+      .course-card h5 {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .course-card .meta {
+        color: var(--ocb-muted);
+        font-size: 0.85rem;
+      }
+
+      .course-card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .course-card-head-text {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .course-card-head-text h5 {
+        word-break: break-word;
+        line-height: 1.25;
+      }
+
+      .course-card-desc {
+        color: var(--ocb-muted);
+        font-size: 0.85rem;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .course-card-desc.is-muted {
+        color: #9ca3af;
+        font-style: italic;
+      }
+
+      .course-card-head-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-shrink: 0;
+      }
+
+      .course-card-lesson-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #eef2ff;
+        color: #4338ca;
+        border-radius: 999px;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .course-card-lesson-badge i {
+        font-size: 0.85rem;
+        color: #6366f1;
+      }
+
+      .course-card-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      /* ---------- Authors block on course card ---------- */
+      .course-card-authors {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .course-card-authors-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ocb-muted);
+      }
+
+      .course-card-authors-label i {
+        font-size: 0.8rem;
+        color: #6366f1;
+      }
+
+      .course-card-authors-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .author-chip {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: #f5f3ff;
+        color: #5b21b6;
+        text-decoration: none;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px solid #ede9fe;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+
+      .author-chip:hover,
+      .author-chip:focus {
+        background: #ede9fe;
+        border-color: #c4b5fd;
+        color: #4c1d95;
+        text-decoration: none;
+      }
+
+      .author-chip[href] {
+        cursor: pointer;
+      }
+
+      .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #4b5563;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .stat-chip i {
+        font-size: 0.78rem;
+        line-height: 1;
+      }
+
+      .stat-chip.stat-total {
+        background: #eef2ff;
+        color: #4338ca;
+      }
+
+      .stat-chip.stat-total i {
+        color: #6366f1;
+      }
+
+      .stat-chip.stat-updated {
+        background: #ecfdf5;
+        color: #047857;
+      }
+
+      .stat-chip.stat-updated i {
+        color: #10b981;
+      }
+
+      .course-card-footer {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto;
+        padding-top: 0.25rem;
+      }
+
+      .course-card-footer .btn {
+        flex: 1 1 0;
+      }
+
+      /* ---------- Empty state ---------- */
+      .empty-state {
+        max-width: 480px;
+        margin: 2rem auto;
+      }
+
+      .empty-state-icon {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        margin: 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
+        color: #6366f1;
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+      }
+
+      /* ---------- JSON preview in the modal ---------- */
+      .preview-text {
+        background: #fff;
+        color: #1f2937;
+        padding: 1.25rem 1.5rem;
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9rem;
+        border: 1px solid var(--ocb-border);
+        border-radius: 8px;
+        max-height: 75vh;
+        overflow: auto;
+      }
+
+      /* ---------- Search input ---------- */
+      .navbar-search {
+        max-width: 320px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top nav -->
+    <nav class="navbar navbar-light bg-white border-bottom sticky-top">
+      <div class="container">
+        <a class="navbar-brand fw-semibold d-flex align-items-center gap-2" href="#">
+          <i class="bi bi-mortarboard-fill text-primary"></i>
+          <span>OCS Ohara</span>
+        </a>
+        <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+          <div class="navbar-search position-relative flex-grow-1" style="max-width: 320px;">
+            <i class="bi bi-search position-absolute" style="left: 0.65rem; top: 50%; transform: translateY(-50%); color: var(--ocb-muted);"></i>
+            <input
+              id="searchInput"
+              type="search"
+              class="form-control form-control-sm"
+              placeholder="Search title, description, tag, language, author…"
+              autocomplete="off"
+              style="padding-left: 2rem;"
+            />
+          </div>
+          <span id="courseCount" class="text-muted small d-none d-md-inline"></span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-4">
+      <!-- Course list view -->
+      <section id="coursesView">
+        <div id="emptyState" class="empty-state text-center py-5 d-none">
+          <div class="empty-state-icon">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <h3 class="mt-3 mb-2" id="emptyStateTitle">No courses yet</h3>
+          <p class="text-muted mb-4" id="emptyStateBody">
+            Drop a <code>.json</code> course file into the <code>courses/</code> folder and refresh.
+          </p>
+        </div>
+        <div id="coursesList" class="row g-3"></div>
+      </section>
+    </main>
+
+    <!-- Course detail modal: shows full JSON and a download button. -->
+    <div class="modal fade" id="courseModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="courseModalTitle">Course</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted mb-2" id="courseModalMeta"></p>
+            <p class="mb-3" id="courseModalDescription"></p>
+            <pre
+              id="courseModalJson"
+              class="preview-text"
+              style="max-height: 60vh;"
+            ></pre>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            <a
+              id="courseModalDownloadLink"
+              class="btn btn-primary"
+              href="#"
+              download
+            >
+              <i class="bi bi-download me-1"></i> Download JSON
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (() => {
+        "use strict";
+
+        // ---------- State --------------------------------------------------------
+        let allCourses = [];
+        let activeCourse = null;
+
+        // ---------- DOM refs -----------------------------------------------------
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+        const els = {
+          searchInput: $("#searchInput"),
+          courseCount: $("#courseCount"),
+          emptyState: $("#emptyState"),
+          emptyStateTitle: $("#emptyStateTitle"),
+          emptyStateBody: $("#emptyStateBody"),
+          coursesList: $("#coursesList"),
+          courseModalEl: $("#courseModal"),
+          courseModalTitle: $("#courseModalTitle"),
+          courseModalMeta: $("#courseModalMeta"),
+          courseModalDescription: $("#courseModalDescription"),
+          courseModalJson: $("#courseModalJson"),
+          courseModalDownloadLink: $("#courseModalDownloadLink"),
+        };
+
+        const bsModal = new bootstrap.Modal(els.courseModalEl);
+
+        // ---------- Helpers ------------------------------------------------------
+        function escapeHtml(str) {
+          return String(str ?? "").replace(/[&<>"']/g, (c) => (
+            { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+          ));
+        }
+
+        function formatDate(iso) {
+          if (!iso) return "";
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return "";
+          return d.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+        }
+
+        // Build a lower-cased haystack of every searchable field for a course.
+        function buildHaystack(c) {
+          const parts = [
+            c.title || "",
+            c.description || "",
+            Array.isArray(c.tags) ? c.tags.join(" ") : "",
+            Array.isArray(c.courseLanguage) ? c.courseLanguage.join(" ") : "",
+            Array.isArray(c.authors)
+              ? c.authors.map((a) => (a && a.authorName) || "").join(" ")
+              : "",
+          ];
+          return parts.join(" ").toLowerCase();
+        }
+
+        // ---------- Data loading -------------------------------------------------
+        async function loadIndex() {
+          try {
+            const res = await fetch("courses-index.json", { cache: "no-cache" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            allCourses = await res.json();
+          } catch (err) {
+            console.error("Failed to load courses-index.json:", err);
+            allCourses = [];
+            // Render an explicit "failed to load" state.
+            els.emptyState.classList.remove("d-none");
+            els.emptyStateTitle.textContent = "Failed to load courses";
+            els.emptyStateBody.innerHTML =
+              'Could not fetch <code>courses-index.json</code>. ' +
+              'Make sure you ran <code>node generate-index.js</code> and that the file is reachable.';
+            els.coursesList.innerHTML = "";
+            els.courseCount.textContent = "";
+            return;
+          }
+          render();
+        }
+
+        // ---------- Rendering ----------------------------------------------------
+        function render() {
+          const query = (els.searchInput.value || "").trim().toLowerCase();
+          const list = query
+            ? allCourses.filter((c) => buildHaystack(c).includes(query))
+            : allCourses;
+
+          // Update count.
+          if (allCourses.length === 0) {
+            els.courseCount.textContent = "";
+          } else {
+            const noun = list.length === 1 ? "course" : "courses";
+            const suffix = query ? ` matching “${query}”` : "";
+            els.courseCount.textContent = `${list.length} ${noun}${suffix}`;
+          }
+
+          // Empty state.
+          if (list.length === 0) {
+            els.coursesList.innerHTML = "";
+            els.emptyState.classList.remove("d-none");
+            if (allCourses.length === 0) {
+              els.emptyStateTitle.textContent = "No courses yet";
+              els.emptyStateBody.innerHTML =
+                'Drop a <code>.json</code> course file into the <code>courses/</code> folder, ' +
+                'then run <code>node generate-index.js</code> and refresh.';
+            } else {
+              els.emptyStateTitle.textContent = "No matches";
+              els.emptyStateBody.textContent = `No courses match “${query}”.`;
+            }
+            return;
+          }
+          els.emptyState.classList.add("d-none");
+
+          els.coursesList.innerHTML = list.map(renderCard).join("");
+          attachCardHandlers();
+        }
+
+        function renderCard(c) {
+          const filename = c.filename;
+          const lessonCount = Number(c.lessonCount) || 0;
+          const authors = Array.isArray(c.authors)
+            ? c.authors.filter((a) => a && a.authorName)
+            : [];
+          const tags = Array.isArray(c.tags) ? c.tags : [];
+          const languages = Array.isArray(c.courseLanguage) ? c.courseLanguage : [];
+          const updated = c.updatedAt ? formatDate(c.updatedAt) : "";
+
+          const authorsHtml = authors.length
+            ? `<div class="course-card-authors" title="${escapeHtml(
+                authors.map((a) => a.authorName).join(", ")
+              )}">
+                 <span class="course-card-authors-label">
+                   <i class="bi bi-people"></i> Authors
+                 </span>
+                 <div class="course-card-authors-list">
+                   ${authors
+                     .map((a) => {
+                       const name = escapeHtml(a.authorName);
+                       const link = a.authorLink
+                         ? escapeHtml(a.authorLink)
+                         : "";
+                       return link
+                         ? `<a class="author-chip" href="${link}" target="_blank" rel="noopener noreferrer" title="${name}">${name}</a>`
+                         : `<span class="author-chip" title="${name}">${name}</span>`;
+                     })
+                     .join("")}
+                 </div>
+               </div>`
+            : "";
+
+          const tagsHtml = tags
+            .map(
+              (t) =>
+                `<span class="stat-chip" title="Tag"><i class="bi bi-tag"></i>${escapeHtml(
+                  t
+                )}</span>`
+            )
+            .join("");
+
+          const langsHtml = languages.length
+            ? `<span class="stat-chip" title="Language"><i class="bi bi-translate"></i>${escapeHtml(
+                languages.join(", ")
+              )}</span>`
+            : "";
+
+          const filenameHtml = `<span class="stat-chip stat-total" title="File on disk"><i class="bi bi-file-earmark-code"></i>${escapeHtml(
+            filename
+          )}</span>`;
+
+          const updatedHtml = updated
+            ? `<span class="stat-chip stat-updated" title="Last updated"><i class="bi bi-calendar3"></i>${escapeHtml(
+                updated
+              )}</span>`
+            : "";
+
+          return `
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="course-card" data-filename="${escapeHtml(filename)}">
+                <div class="course-card-head">
+                  <div class="course-card-head-text">
+                    <h5 class="mb-1">${escapeHtml(c.title || filename)}</h5>
+                    ${
+                      c.description
+                        ? `<p class="course-card-desc">${escapeHtml(c.description)}</p>`
+                        : `<p class="course-card-desc is-muted">No description</p>`
+                    }
+                  </div>
+                  <div class="course-card-head-actions">
+                    <div class="course-card-lesson-badge" title="Total lessons" aria-label="${lessonCount} lessons">
+                      <i class="bi bi-collection"></i>
+                      <span>${lessonCount}</span>
+                    </div>
+                  </div>
+                </div>
+                ${authorsHtml}
+                <div class="course-card-stats">
+                  ${filenameHtml}
+                  ${updatedHtml}
+                  ${tagsHtml}
+                  ${langsHtml}
+                </div>
+                <div class="course-card-footer">
+                  <button type="button" class="btn btn-sm btn-outline-secondary view-course">
+                    <i class="bi bi-eye"></i> View
+                  </button>
+                  <a
+                    type="button"
+                    class="btn btn-sm btn-primary download-course"
+                    href="courses/${encodeURIComponent(filename)}"
+                    download
+                  >
+                    <i class="bi bi-download"></i> Download
+                  </a>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        // ---------- Modal --------------------------------------------------------
+        async function openCourse(filename) {
+          try {
+            const res = await fetch(`courses/${encodeURIComponent(filename)}`, {
+              cache: "no-cache",
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const course = await res.json();
+
+            activeCourse = { filename, course };
+            els.courseModalTitle.textContent = course.title || filename;
+            const lessons = Array.isArray(course.lessons) ? course.lessons.length : 0;
+            const updated = course.updatedAt ? formatDate(course.updatedAt) : "—";
+            els.courseModalMeta.textContent = `${lessons} lesson${
+              lessons === 1 ? "" : "s"
+            } · updated ${updated} · ${filename}`;
+            els.courseModalDescription.textContent = course.description || "";
+            els.courseModalDescription.classList.toggle(
+              "text-muted",
+              !course.description
+            );
+            els.courseModalJson.textContent = JSON.stringify(course, null, 2);
+
+            // Direct download link to the on-disk file.
+            els.courseModalDownloadLink.setAttribute(
+              "href",
+              `courses/${encodeURIComponent(filename)}`
+            );
+            els.courseModalDownloadLink.setAttribute("download", filename);
+
+            bsModal.show();
+          } catch (err) {
+            console.error(`Failed to open course ${filename}:`, err);
+            alert(
+              `Failed to open course "${filename}". See the browser console for details.`
+            );
+          }
+        }
+
+        // ---------- Event wiring -------------------------------------------------
+        function attachCardHandlers() {
+          $$(".course-card").forEach((el) => {
+            const filename = el.dataset.filename;
+            if (!filename) return;
+
+            const viewBtn = el.querySelector(".view-course");
+            if (viewBtn) {
+              viewBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openCourse(filename);
+              });
+            }
+
+            el.querySelectorAll(".author-chip").forEach((chip) => {
+              chip.addEventListener("click", (e) => e.stopPropagation());
+            });
+
+            el.addEventListener("click", () => openCourse(filename));
+          });
+        }
+
+        // Tiny debounce on the search input.
+        let searchTimer = null;
+        els.searchInput.addEventListener("input", () => {
+          if (searchTimer) clearTimeout(searchTimer);
+          searchTimer = setTimeout(render, 80);
+        });
+
+        // ---------- Init ---------------------------------------------------------
+        loadIndex().then(() => {
+          // First render is already done inside loadIndex on success.
+        });
+      })();
+    </script>
+  </body>
+</html>

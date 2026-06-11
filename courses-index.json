@@ -1,0 +1,44 @@
+[
+  {
+    "filename": "e79c6c29-136b-4572-b208-7ec9b475b1c0.json",
+    "title": "test author",
+    "description": "this is course description",
+    "tags": [
+      "js",
+      "react",
+      "node"
+    ],
+    "courseLanguage": [
+      "english",
+      "bangla"
+    ],
+    "authors": [
+      {
+        "authorName": "rayanr",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      },
+      {
+        "authorName": "rayan",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      },
+      {
+        "authorName": "rauan",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      },
+      {
+        "authorName": "yiakksf",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      },
+      {
+        "authorName": "kdfjsljdlk",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      },
+      {
+        "authorName": "fdajsjfio",
+        "authorLink": "https://linkedin.com/in/rayanul-kader-chowdhury"
+      }
+    ],
+    "lessonCount": 1,
+    "updatedAt": "2026-06-10T11:25:14.567Z"
+  }
+]
