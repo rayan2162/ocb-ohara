@@ -267,6 +267,105 @@
         overflow: auto;
       }
 
+      /* ---------- Modal: view-mode toggle + lesson list ---------- */
+      .modal-view-toggle .btn {
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+      .modal-view-toggle .btn i {
+        margin-right: 0.25rem;
+      }
+
+      .lesson-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 60vh;
+        overflow: auto;
+        padding-right: 0.25rem;
+      }
+      .lesson-item {
+        background: #fff;
+        border: 1px solid var(--ocb-border);
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .lesson-item-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .lesson-item-title {
+        font-weight: 600;
+        color: #1f2937;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .lesson-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .lesson-type-badge.type-text {
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+      }
+      .lesson-type-badge.type-link {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+      }
+      .lesson-type-badge.type-other {
+        background: #f3f4f6;
+        color: #4b5563;
+        border-color: #e5e7eb;
+      }
+      .lesson-item-body {
+        color: #374151;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .lesson-item-body.muted {
+        color: #9ca3af;
+        font-style: italic;
+      }
+      .lesson-item-link {
+        color: #2563eb;
+        text-decoration: none;
+        word-break: break-all;
+      }
+      .lesson-item-link:hover {
+        text-decoration: underline;
+      }
+      .lesson-item-notes {
+        font-size: 0.85rem;
+        color: #6b7280;
+        border-top: 1px dashed var(--ocb-border);
+        padding-top: 0.4rem;
+        white-space: pre-wrap;
+      }
+      .lesson-list-empty {
+        text-align: center;
+        color: #9ca3af;
+        font-style: italic;
+        padding: 2rem 0;
+      }
+
       /* ---------- Search input ---------- */
       .navbar-search {
         max-width: 320px;
@@ -323,11 +422,48 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <p class="text-muted mb-2" id="courseModalMeta"></p>
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+              <p class="text-muted mb-0 small" id="courseModalMeta"></p>
+              <div
+                class="btn-group btn-group-sm modal-view-toggle"
+                role="group"
+                aria-label="Course view mode"
+              >
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="courseViewMode"
+                  id="courseViewList"
+                  value="list"
+                  autocomplete="off"
+                  checked
+                />
+                <label class="btn btn-outline-primary" for="courseViewList">
+                  <i class="bi bi-list-ul"></i>List
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="courseViewMode"
+                  id="courseViewRaw"
+                  value="raw"
+                  autocomplete="off"
+                />
+                <label class="btn btn-outline-primary" for="courseViewRaw">
+                  <i class="bi bi-code-slash"></i>Raw
+                </label>
+              </div>
+            </div>
             <p class="mb-3" id="courseModalDescription"></p>
+
+            <!-- Pretty list view (default) -->
+            <div id="courseModalLessons" class="lesson-list"></div>
+
+            <!-- Raw JSON view -->
             <pre
               id="courseModalJson"
-              class="preview-text"
+              class="preview-text d-none"
               style="max-height: 60vh;"
             ></pre>
           </div>
@@ -371,10 +507,27 @@
           courseModalMeta: $("#courseModalMeta"),
           courseModalDescription: $("#courseModalDescription"),
           courseModalJson: $("#courseModalJson"),
+          courseModalLessons: $("#courseModalLessons"),
+          courseViewList: $("#courseViewList"),
+          courseViewRaw: $("#courseViewRaw"),
           courseModalDownloadLink: $("#courseModalDownloadLink"),
         };
 
+        // Modal view mode: "list" (pretty lessons) or "raw" (JSON). Resets
+        // to "list" every time a course is opened.
+        let currentView = "list";
+
         const bsModal = new bootstrap.Modal(els.courseModalEl);
+
+        // List / Raw view toggle: change handler swaps which container is
+        // visible. Bound once at init; the radios' state is reset in
+        // setModalView() on every openCourse().
+        els.courseViewList.addEventListener("change", () => {
+          if (els.courseViewList.checked) setModalView("list");
+        });
+        els.courseViewRaw.addEventListener("change", () => {
+          if (els.courseViewRaw.checked) setModalView("raw");
+        });
 
         // ---------- Helpers ------------------------------------------------------
         function escapeHtml(str) {
@@ -569,6 +722,94 @@
         }
 
         // ---------- Modal --------------------------------------------------------
+
+        // Render the pretty lesson list for a course into the lessons container.
+        function renderLessonList(course) {
+          const lessons = Array.isArray(course.lessons) ? course.lessons : [];
+          if (lessons.length === 0) {
+            els.courseModalLessons.innerHTML =
+              '<div class="lesson-list-empty">No lessons in this course.</div>';
+            return;
+          }
+          els.courseModalLessons.innerHTML = lessons
+            .map((l, i) => {
+              const title = l && l.title ? String(l.title) : `Lesson ${i + 1}`;
+              const typeRaw = (l && l.type ? String(l.type) : "").toLowerCase();
+              const known = typeRaw === "text" || typeRaw === "link";
+              const typeClass = known ? `type-${typeRaw}` : "type-other";
+              const typeLabel = typeRaw
+                ? typeRaw.charAt(0).toUpperCase() + typeRaw.slice(1)
+                : "Unknown";
+
+              let bodyHtml = "";
+              const resource =
+                l && typeof l.resource === "string" && l.resource.trim();
+              const content =
+                l && typeof l.content === "string" && l.content.trim();
+              if (typeRaw === "link" && resource) {
+                bodyHtml =
+                  `<a class="lesson-item-link" href="${escapeHtml(
+                    resource
+                  )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                    resource
+                  )}</a>`;
+              } else if (content) {
+                bodyHtml = escapeHtml(content);
+              } else if (resource) {
+                // type wasn't "link" but a resource exists — show it as text.
+                bodyHtml = escapeHtml(resource);
+              } else {
+                bodyHtml =
+                  '<span class="lesson-item-body muted">No content.</span>';
+              }
+
+              const notes =
+                l && typeof l.notes === "string" && l.notes.trim();
+              const lessonNote =
+                l && typeof l.lessonNote === "string" && l.lessonNote.trim();
+              let notesHtml = "";
+              if (notes) {
+                notesHtml += `<div class="lesson-item-notes"><strong>Notes:</strong> ${escapeHtml(
+                  notes
+                )}</div>`;
+              }
+              if (lessonNote) {
+                notesHtml += `<div class="lesson-item-notes"><strong>Lesson note:</strong> ${escapeHtml(
+                  lessonNote
+                )}</div>`;
+              }
+
+              return `
+                <div class="lesson-item">
+                  <div class="lesson-item-head">
+                    <span class="lesson-item-title">${i + 1}. ${escapeHtml(
+                title
+              )}</span>
+                    <span class="lesson-type-badge ${typeClass}">${escapeHtml(
+                typeLabel
+              )}</span>
+                  </div>
+                  <div class="lesson-item-body${
+                    content || resource ? "" : " muted"
+                  }">${bodyHtml}</div>
+                  ${notesHtml}
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        // Swap the modal body between the pretty list and the raw JSON view.
+        function setModalView(mode) {
+          currentView = mode === "raw" ? "raw" : "list";
+          const showRaw = currentView === "raw";
+          els.courseModalLessons.classList.toggle("d-none", showRaw);
+          els.courseModalJson.classList.toggle("d-none", !showRaw);
+          // Keep the radio in sync (the user can also click the label).
+          els.courseViewList.checked = !showRaw;
+          els.courseViewRaw.checked = showRaw;
+        }
+
         async function openCourse(filename) {
           try {
             const res = await fetch(`courses/${encodeURIComponent(filename)}`, {
@@ -590,6 +831,7 @@
               !course.description
             );
             els.courseModalJson.textContent = JSON.stringify(course, null, 2);
+            renderLessonList(course);
 
             // Direct download link to the on-disk file.
             els.courseModalDownloadLink.setAttribute(
@@ -597,6 +839,9 @@
               `courses/${encodeURIComponent(filename)}`
             );
             els.courseModalDownloadLink.setAttribute("download", filename);
+
+            // Default to the pretty list view every time a course opens.
+            setModalView("list");
 
             bsModal.show();
           } catch (err) {
